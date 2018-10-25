@@ -4,9 +4,9 @@
   "description": "A test app to use @slack/client inside an electron app",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "ELECTRON_RUN_AS_NODE=1 electron ."
   },
   "devDependencies": {
-    "electron": "^3.0.4"
+    "electron": "^2.0.9"
   }
 }
