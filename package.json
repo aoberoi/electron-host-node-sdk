@@ -7,7 +7,7 @@
     "start": "ELECTRON_RUN_AS_NODE=1 electron ."
   },
   "devDependencies": {
-    "electron": "^2.0.9"
+    "electron": "2.0.9"
   },
   "dependencies": {
     "@slack/client": "^4.8.0"
