@@ -24,7 +24,7 @@ const gatherConversationInfo = Promise.all([slack.channels.list(), slack.groups.
   });
 
 // report results
-const tenMinutesInMs = 10 * 60 * 1000;
+const tenMinutesInMs = /* 10 * 60 * */ 1000;
 timeout(gatherConversationInfo, tenMinutesInMs)
   .then(([ channelInfoList, groupInfoList, imInfoList ]) => {
     console.log('completed');
@@ -35,6 +35,12 @@ timeout(gatherConversationInfo, tenMinutesInMs)
   .catch((error) => {
     if (error.message === 'timeout') {
       console.log('failed due to timeout');
+
+      // accessing private state, don't try this at home.
+      console.log('PQueue:', slack.requestQueue);
+      console.log('PQueue _pendingCount:', slack.requestQueue._pendingCount);
+      console.log('PQueue queue._queue:', slack.requestQueue.queue._queue);
+      console.log('PQueue queue._queue.length:', slack.requestQueue.queue._queue.length);
     } else {
       console.error(error);
     }
