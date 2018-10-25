@@ -1,11 +1,11 @@
-const { WebClient } = require('@slack/client');
+const { WebClient, LogLevel } = require('@slack/client');
 
 if (typeof process.env.SLACK_ACCESS_TOKEN !== 'string') {
   throw new Error('You must specify a SLACK_ACCESS_TOKEN environment variable to run this program');
 }
 
 // initialize a slack web API client
-const slack = new WebClient(process.env.SLACK_ACCESS_TOKEN);
+const slack = new WebClient(process.env.SLACK_ACCESS_TOKEN, { logLevel: LogLevel.DEBUG });
 
 slack.on('rate_limited', (retrySec) => {
   console.log(`slack web API rate limit reached, pausing for ${retrySec} seconds`);
