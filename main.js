@@ -30,7 +30,7 @@ const gatherConversationInfo = Promise.all([slack.channels.list(), slack.groups.
   });
 
 // report results
-const tenMinutesInMs = /* 10 * 60 * */ 1000;
+const tenMinutesInMs = 10 * 60 * 1000;
 timeout(gatherConversationInfo, tenMinutesInMs)
   .then(([ channelInfoList, groupInfoList, imInfoList ]) => {
     console.log('completed');
