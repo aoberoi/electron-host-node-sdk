@@ -6,25 +6,20 @@ if (typeof process.env.SLACK_ACCESS_TOKEN !== 'string') {
 }
 
 // initialize a slack web API client
-const slack = new WebClient(process.env.SLACK_ACCESS_TOKEN, {
-  logLevel: LogLevel.DEBUG,
-  logger: (level, message) => {
-    console.log(`${timestamp.utc('YYYY/MM/DD:mm:ss:ms')} ${level} ${message}`);
-  }
-});
+const web = new WebClient(process.env.SLACK_ACCESS_TOKEN);
 
-slack.on('rate_limited', (retrySec) => {
+web.on('rate_limited', (retrySec) => {
   console.log(`slack web API rate limit reached, pausing for ${retrySec} seconds`);
 })
 
 // gather info for all channels, groups, ims
-const gatherConversationInfo = Promise.all([slack.channels.list(), slack.groups.list(), slack.im.list()])
+const gatherConversationInfo = Promise.all([slack('channels.list'), slack('groups.list'), slack('im.list')])
   .then(([{ channels }, { groups }, { ims }]) => {
     console.log('gathered conversation lists');
 
-    const channelInfos = Promise.all(channels.map(({ id }) => slack.channels.info({ channel: id })));
-    const groupInfos = Promise.all(groups.map(({ id }) => slack.groups.info({ channel: id })));
-    const imInfos = Promise.all(ims.map(({ id }) => slack.conversations.info({ channel: id })));
+    const channelInfos = Promise.all(channels.map(({ id }) => slack('channels.info', { channel: id })));
+    const groupInfos = Promise.all(groups.map(({ id }) => slack('groups.info', { channel: id })));
+    const imInfos = Promise.all(ims.map(({ id }) => slack('conversations.info', { channel: id })));
 
     return Promise.all([channelInfos, groupInfos, imInfos]);
   });
@@ -43,16 +38,26 @@ timeout(gatherConversationInfo, tenMinutesInMs)
       console.log('failed due to timeout');
 
       // accessing private state, don't try this at home.
-      console.log('PQueue:', slack.requestQueue);
-      console.log('PQueue _pendingCount:', slack.requestQueue._pendingCount);
-      console.log('PQueue queue._queue:', slack.requestQueue.queue._queue);
-      console.log('PQueue queue._queue.length:', slack.requestQueue.queue._queue.length);
+      console.log('PQueue:', web.requestQueue);
+      console.log('PQueue _pendingCount:', web.requestQueue._pendingCount);
+      console.log('PQueue queue._queue:', web.requestQueue.queue._queue);
+      console.log('PQueue queue._queue.length:', web.requestQueue.queue._queue.length);
     } else {
       console.error(error);
     }
   });
 
 // Helpers
+
+// makes a slack api call, but logs the method and params before and after
+function slack(apiMethod, opts = {}) {
+  console.log(`START: ${timestamp.utc('YYYY/MM/DD:mm:ss:ms')} ${apiMethod} ${JSON.stringify(opts)}`);
+  return web.apiCall(apiMethod, opts)
+    .then((result) => {
+      console.log(`END: ${timestamp.utc('YYYY/MM/DD:mm:ss:ms')} ${apiMethod} ${JSON.stringify(opts)}`)
+      return result;
+    });
+}
 
 // returns a promise that rejects with an error if the original promise doesn't resolve within the specified time
 // time is in milliseconds, rejection is an error with message 'timeout'
